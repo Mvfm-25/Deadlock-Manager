@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://3ssosdlv7an4"]
+
+[ext_resource type="PackedScene" uid="uid://dn77geqjksvdm" path="res://cenas/minion.tscn" id="1_ah0cf"]
+
+[node name="Mapa" type="Node2D" unique_id=133120531]
+
+[node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=1468331215]
+
+[node name="Minions" type="Node2D" parent="." unique_id=1656990257]
+
+[node name="ArchMother" parent="Minions" unique_id=1086106681 instance=ExtResource("1_ah0cf")]
+position = Vector2(2, 309)
+equipe = "ArchMother"
+
+[node name="HiddenKing" parent="Minions" unique_id=1121588478 instance=ExtResource("1_ah0cf")]
+position = Vector2(13, -663)
+equipe = "HiddenKing"
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1066722705]
+position = Vector2(-6, -312)
+zoom = Vector2(0.25, 0.25)

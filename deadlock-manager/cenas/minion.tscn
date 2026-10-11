@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://dn77geqjksvdm"]
+
+[ext_resource type="Script" uid="uid://imwf1didcn52" path="res://scripts/minion.gd" id="1_6vtf0"]
+[ext_resource type="Texture2D" uid="uid://454lf1621es5" path="res://assets/Orange_On_White.png" id="2_d1248"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hitbx"]
+resource_local_to_scene = true
+radius = 300.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_kdcek"]
+resource_local_to_scene = true
+radius = 900.0
+
+[node name="Minion" type="Node2D" unique_id=1086106681]
+script = ExtResource("1_6vtf0")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=318132795]
+texture = ExtResource("2_d1248")
+
+[node name="HitBox" type="Area2D" parent="." unique_id=205419172]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitBox" unique_id=1685324137]
+shape = SubResource("CircleShape2D_hitbx")
+
+[node name="Visao" type="Area2D" parent="." unique_id=183761450]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Visao" unique_id=425462409]
+shape = SubResource("CircleShape2D_kdcek")
+
+[node name="Cadencia" type="Timer" parent="." unique_id=1145047805]
+
+[connection signal="area_entered" from="Visao" to="." method="_on_visao_area_entered"]
+[connection signal="area_exited" from="Visao" to="." method="_on_visao_area_exited"]
+[connection signal="timeout" from="Cadencia" to="." method="atira"]
