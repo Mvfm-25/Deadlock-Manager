@@ -1,18 +1,23 @@
 [gd_scene format=3 uid="uid://3ssosdlv7an4"]
 
 [ext_resource type="PackedScene" path="res://cenas/onda.tscn" id="1_onda"]
+[ext_resource type="PackedScene" path="res://cenas/ponto_controle.tscn" id="2_ponto"]
+[ext_resource type="Script" path="res://scripts/mapa.gd" id="3_mapa"]
 
 [node name="Mapa" type="Node2D" unique_id=133120531]
+script = ExtResource("3_mapa")
 
 [node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=1468331215]
 
 [node name="Spawns" type="Node2D" parent="." unique_id=487443152]
 
 [node name="SpawnMother" type="Node2D" parent="Spawns" unique_id=582875992 groups=["spawn_ArchMother"]]
-position = Vector2(0, 426)
+position = Vector2(0, 2600)
 
 [node name="SpawnKing" type="Node2D" parent="Spawns" unique_id=1894555378 groups=["spawn_HiddenKing"]]
-position = Vector2(0, -426)
+position = Vector2(0, -2600)
+
+[node name="PontoControle" parent="." instance=ExtResource("2_ponto")]
 
 [node name="Ondas" type="Node2D" parent="." unique_id=1656990257]
 
@@ -25,3 +30,18 @@ equipe = "HiddenKing"
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1066722705]
 position = Vector2(-6, -312)
 zoom = Vector2(0.095, 0.095)
+
+[node name="Interface" type="CanvasLayer" parent="."]
+
+[node name="FimDeJogo" type="Label" parent="Interface"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 64
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="capturado" from="PontoControle" to="." method="_on_ponto_controle_capturado"]

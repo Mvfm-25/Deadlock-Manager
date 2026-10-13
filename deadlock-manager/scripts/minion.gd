@@ -29,6 +29,13 @@ var listaPrioritariaAlvos = []
 # Quantas vezes o raio da hit box a visão alcança
 @export var alcanceVisao:float = 3.0
 
+# Onda a que pertence e o seu lugar na formação dela. Quem preenche é a Onda.
+var onda:Onda = null
+var indice:int = 0
+
+# Pixels por segundo. Maior que a velocidade da onda, para conseguir alcançá-la.
+@export var velocidade:float = 450.0
+
 # Ajusta a hit box e a visão ao tamanho da textura do Sprite2D
 func ajustaColisoes() -> void :
 	var tamanho = ($Sprite2D.get_rect().size * $Sprite2D.scale).abs()
@@ -131,6 +138,8 @@ func _ready() -> void:
 	ajustaColisoes()
 
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
+# Sem alvo, anda até o seu lugar na formação da onda; com alvo, fica parado atirando.
 func _process(delta: float) -> void:
-	pass
+	if onda == null or not visible or alvo != null :
+		return
+	global_position = global_position.move_toward(onda.posicaoNaFormacao(indice), velocidade * delta)
