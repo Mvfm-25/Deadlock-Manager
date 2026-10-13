@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://dn77geqjksvdm" path="res://cenas/minion.tscn" id="1_minion"]
+[ext_resource type="Script" path="res://scripts/guardiao.gd" id="2_guardiao"]
+[ext_resource type="Texture2D" uid="uid://oagh4g8agphr" path="res://assets/Blue_On_White.png" id="3_textura"]
+
+[node name="Guardiao" instance=ExtResource("1_minion")]
+script = ExtResource("2_guardiao")
+hp = 60
+dano = 2
+
+[node name="Sprite2D" parent="." index="0"]
+texture = ExtResource("3_textura")
+scale = Vector2(1.8, 1.8)

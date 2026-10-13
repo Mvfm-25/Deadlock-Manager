@@ -21,7 +21,7 @@ const CENA_MINION = preload("res://cenas/minion.tscn")
 # Ponto de spawn da equipe: o nó do mapa que está no grupo "spawn_<equipe>".
 var spawnPoint:Node2D = null
 
-# Fim da lane: o nó do mapa que está no grupo "ponto_controle".
+# Fim da lane: o spawn point inimigo, o nó do grupo "spawn" que não é o da equipe.
 var destino:Node2D = null
 
 # Quanto a onda já andou pela lane, em pixels a partir do spawn point.
@@ -37,7 +37,7 @@ var mortes = 0
 func origem() -> Vector2 :
 	return spawnPoint.global_position if spawnPoint != null else global_position
 
-# Vetor do início ao fim da lane: uma reta do spawn point ao ponto de controle.
+# Vetor do início ao fim da lane: uma reta do spawn point ao spawn point inimigo.
 func lane() -> Vector2 :
 	return destino.global_position - origem() if destino != null else Vector2.ZERO
 
@@ -89,9 +89,12 @@ func _ready() -> void:
 	spawnPoint = get_tree().get_first_node_in_group("spawn_" + equipe) as Node2D
 	if spawnPoint == null :
 		push_warning("Onda '%s': nenhum spawn point no grupo 'spawn_%s'." % [name, equipe])
-	destino = get_tree().get_first_node_in_group("ponto_controle") as Node2D
+	for spawn in get_tree().get_nodes_in_group("spawn") :
+		if spawn != spawnPoint :
+			destino = spawn as Node2D
+			break
 	if destino == null :
-		push_warning("Onda '%s': nenhum nó no grupo 'ponto_controle'." % name)
+		push_warning("Onda '%s': nenhum spawn point inimigo no grupo 'spawn'." % name)
 	criaMinions()
 
 

@@ -11,11 +11,25 @@ const LARGURA_TRACER = 40.0
 const DESLOCAMENTO_TRACER = 60.0
 const DURACAO_TRACER = 0.3
 
+# Cor do fundo da barra de hp de cada equipe; o preenchimento usa a cor do tiro.
+const CORES_FUNDO_HP = {
+	"HiddenKing": Color.BLACK,
+	"ArchMother": Color.WHITE,
+}
+const ALTURA_BARRA_HP = 80.0
+const MARGEM_BARRA_HP = 60.0
+
 # Emitido ao morrer; a Onda usa para saber quando re-spawnar.
 signal morreu
 
-var hp = 10
-var hp_atual = 10
+@export var hp:int = 10
+var hp_atual = 10 :
+	set(valor) :
+		hp_atual = valor
+		queue_redraw()
+
+# Quanto de hp cada tiro tira do alvo
+@export var dano:int = 1
 
 # Valor default
 @export var equipe = "Espiritos"
@@ -66,12 +80,22 @@ func _on_visao_area_exited(area : Area2D) -> void :
 		alvo = null
 	reavaliaAlvos()
 
-# Reordena 'listaPrioritariaAlvos' por hp_atual (maior primeiro) e, caso não
-# esteja atirando em ninguém, começa a atirar no primeiro da lista.
+# Alvos de última opção só levam tiro quando não há outro inimigo à vista.
+# O Guardiao sobrescreve.
+func alvoDeUltimaOpcao() -> bool :
+	return false
+
+# Reordena 'listaPrioritariaAlvos' por hp_atual (maior primeiro), com os alvos
+# de última opção no fim, e, caso não esteja atirando em ninguém, começa a
+# atirar no primeiro da lista. Quem atira num alvo de última opção troca assim
+# que aparece outro inimigo.
 # Minions mortos (escondidos) são ignorados e deixam de ser alvo.
 func reavaliaAlvos() -> void :
 	listaPrioritariaAlvos = inimigosEmRaio.filter(func(m): return m.visible)
-	listaPrioritariaAlvos.sort_custom(func(a, b): return a.hp_atual > b.hp_atual)
+	listaPrioritariaAlvos.sort_custom(func(a, b):
+		if a.alvoDeUltimaOpcao() != b.alvoDeUltimaOpcao() :
+			return b.alvoDeUltimaOpcao()
+		return a.hp_atual > b.hp_atual)
 	if alvo != null and not alvo.visible :
 		alvo = null
 	if listaPrioritariaAlvos.is_empty() :
@@ -79,6 +103,8 @@ func reavaliaAlvos() -> void :
 	elif alvo == null :
 		alvo = listaPrioritariaAlvos[0]
 		$Cadencia.start()
+	elif alvo.alvoDeUltimaOpcao() and not listaPrioritariaAlvos[0].alvoDeUltimaOpcao() :
+		alvo = listaPrioritariaAlvos[0]
 
 # Chamada a cada timeout do Timer 'Cadencia', enquanto houver alvo.
 func atira() -> void :
@@ -89,7 +115,7 @@ func atira() -> void :
 		$Cadencia.stop()
 		return
 	desenhaTracer(alvo.global_position)
-	alvo.hp_atual -= 1
+	alvo.hp_atual -= dano
 	if alvo.hp_atual <= 0 :
 		alvo.morre()
 		reavaliaAlvos()
@@ -134,8 +160,19 @@ func spawn(posicao:Vector2) -> void :
 	$Visao/CollisionShape2D.set_deferred("disabled", false)
 
 
+# Barra de hp acima da cabeça, da largura da hit box: o fundo e, por cima, a
+# fração de hp que resta, nas cores da equipe.
+func _draw() -> void :
+	var raio = $HitBox/CollisionShape2D.shape.radius
+	var canto = Vector2(-raio, -raio - MARGEM_BARRA_HP - ALTURA_BARRA_HP)
+	var fracao = clamp(float(hp_atual) / hp, 0.0, 1.0)
+	draw_rect(Rect2(canto, Vector2(raio * 2.0, ALTURA_BARRA_HP)), CORES_FUNDO_HP.get(equipe, Color.DIM_GRAY))
+	draw_rect(Rect2(canto, Vector2(raio * 2.0 * fracao, ALTURA_BARRA_HP)), CORES_TIRO.get(equipe, Color.WHITE))
+
+
 func _ready() -> void:
 	ajustaColisoes()
+	hp_atual = hp
 
 
 # Sem alvo, anda até o seu lugar na formação da onda; com alvo, fica parado atirando.
