@@ -6,6 +6,14 @@
 
 [node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=1468331215]
 
+[node name="Spawns" type="Node2D" parent="." unique_id=487443152]
+
+[node name="SpawnMother" type="Node2D" parent="Spawns" unique_id=582875992 groups=["spawn_ArchMother"]]
+position = Vector2(0, 2521)
+
+[node name="SpawnKing" type="Node2D" parent="Spawns" unique_id=1894555378 groups=["spawn_HiddenKing"]]
+position = Vector2(0, -2542)
+
 [node name="Minions" type="Node2D" parent="." unique_id=1656990257]
 
 [node name="ArchMother" parent="Minions" unique_id=1086106681 instance=ExtResource("1_ah0cf")]
@@ -18,4 +26,4 @@ equipe = "HiddenKing"
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1066722705]
 position = Vector2(-6, -312)
-zoom = Vector2(0.25, 0.25)
+zoom = Vector2(0.095, 0.095)
