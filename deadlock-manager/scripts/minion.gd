@@ -2,15 +2,23 @@ extends Node2D
 
 class_name Minion
 
-# Ponto de re-spawn da equipe: o nó do mapa que está no grupo "spawn_<equipe>".
-var spawnPoint:Node2D = null
+# Cor do tracer de tiro de cada equipe (branco para equipes fora da lista).
+const CORES_TIRO = {
+	"HiddenKing": Color.YELLOW,
+	"ArchMother": Color.DODGER_BLUE,
+}
+const LARGURA_TRACER = 40.0
+const DESLOCAMENTO_TRACER = 60.0
+const DURACAO_TRACER = 0.3
+
+# Emitido ao morrer; a Onda usa para saber quando re-spawnar.
+signal morreu
 
 var hp = 10
 var hp_atual = 10
 
 # Valor default
 @export var equipe = "Espiritos"
-var tempoRespawn = 5.0
 
 var aliadosEmRaio = []
 var inimigosEmRaio = []
@@ -73,42 +81,54 @@ func atira() -> void :
 	if alvo == null :
 		$Cadencia.stop()
 		return
+	desenhaTracer(alvo.global_position)
 	alvo.hp_atual -= 1
 	if alvo.hp_atual <= 0 :
 		alvo.morre()
 		reavaliaAlvos()
 
-# Deixa de ser desenhado e some da visão dos outros minions. Quem o via só
-# recebe 'area_exited' quando ele se move no re-spawn; até lá, é ignorado
-# por estar escondido (ver 'reavaliaAlvos').
+# Risco temporário do minion até 'destino', na cor da equipe, que some sozinho.
+# Fica deslocado para a direita de quem atira, para que os tiros de ida e de
+# volta entre dois minions não se sobreponham.
+func desenhaTracer(destino:Vector2) -> void :
+	var fim = to_local(destino)
+	var lado = fim.normalized().orthogonal() * -DESLOCAMENTO_TRACER
+	var tracer = Line2D.new()
+	tracer.points = [lado, fim + lado]
+	tracer.width = LARGURA_TRACER
+	tracer.default_color = CORES_TIRO.get(equipe, Color.WHITE)
+	tracer.z_index = 1
+	add_child(tracer)
+	var tween = tracer.create_tween()
+	tween.tween_property(tracer, "modulate:a", 0.0, DURACAO_TRACER)
+	tween.tween_callback(tracer.queue_free)
+
+# Deixa de ser desenhado e some da visão dos outros minions. Desligar os
+# CollisionShape2D dispara 'area_exited' em quem o via (desligar apenas
+# 'monitorable' na Area2D não dispara).
 func morre() -> void :
-	# Já está morto: evita re-spawn duplicado se dois minions o matarem no mesmo frame.
+	# Já está morto: evita emitir 'morreu' duas vezes se dois minions o matarem no mesmo frame.
 	if not visible :
 		return
 	hide()
 	alvo = null
 	$Cadencia.stop()
-	$HitBox.set_deferred("monitorable", false)
-	$Visao.set_deferred("monitoring", false)
-	spawn()
+	$HitBox/CollisionShape2D.set_deferred("disabled", true)
+	$Visao/CollisionShape2D.set_deferred("disabled", true)
+	morreu.emit()
 
-# Move para o spawn point da equipe & volta a desenhar minion após seu tempo determinado de re-spawn.
+# Move para 'posicao' & volta a desenhar o minion com a vida cheia. Quem decide quando é a Onda.
 # Religar a Visao dispara 'area_entered' para quem já está no raio, o que reinicia a Cadencia.
-func spawn() -> void :
-	await get_tree().create_timer(tempoRespawn).timeout
-	if spawnPoint != null :
-		global_position = spawnPoint.global_position
+func spawn(posicao:Vector2) -> void :
+	global_position = posicao
 	hp_atual = hp
 	show()
-	$HitBox.set_deferred("monitorable", true)
-	$Visao.set_deferred("monitoring", true)
+	$HitBox/CollisionShape2D.set_deferred("disabled", false)
+	$Visao/CollisionShape2D.set_deferred("disabled", false)
 
 
 func _ready() -> void:
 	ajustaColisoes()
-	spawnPoint = get_tree().get_first_node_in_group("spawn_" + equipe) as Node2D
-	if spawnPoint == null :
-		push_warning("Minion '%s': nenhum spawn point no grupo 'spawn_%s'." % [name, equipe])
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

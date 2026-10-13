@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://3ssosdlv7an4"]
 
-[ext_resource type="PackedScene" uid="uid://dn77geqjksvdm" path="res://cenas/minion.tscn" id="1_ah0cf"]
+[ext_resource type="PackedScene" path="res://cenas/onda.tscn" id="1_onda"]
 
 [node name="Mapa" type="Node2D" unique_id=133120531]
 
@@ -9,19 +9,17 @@
 [node name="Spawns" type="Node2D" parent="." unique_id=487443152]
 
 [node name="SpawnMother" type="Node2D" parent="Spawns" unique_id=582875992 groups=["spawn_ArchMother"]]
-position = Vector2(0, 2521)
+position = Vector2(0, 426)
 
 [node name="SpawnKing" type="Node2D" parent="Spawns" unique_id=1894555378 groups=["spawn_HiddenKing"]]
-position = Vector2(0, -2542)
+position = Vector2(0, -426)
 
-[node name="Minions" type="Node2D" parent="." unique_id=1656990257]
+[node name="Ondas" type="Node2D" parent="." unique_id=1656990257]
 
-[node name="ArchMother" parent="Minions" unique_id=1086106681 instance=ExtResource("1_ah0cf")]
-position = Vector2(2, 309)
+[node name="OndaMother" parent="Ondas" unique_id=2030405188 instance=ExtResource("1_onda")]
 equipe = "ArchMother"
 
-[node name="HiddenKing" parent="Minions" unique_id=1121588478 instance=ExtResource("1_ah0cf")]
-position = Vector2(13, -663)
+[node name="OndaKing" parent="Ondas" unique_id=772249875 instance=ExtResource("1_onda")]
 equipe = "HiddenKing"
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1066722705]
