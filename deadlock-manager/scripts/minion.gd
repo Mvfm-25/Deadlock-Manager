@@ -19,6 +19,9 @@ const CORES_FUNDO_HP = {
 const ALTURA_BARRA_HP = 80.0
 const MARGEM_BARRA_HP = 60.0
 
+const LARGURA_DEBUG = 30.0
+const PONTA_SETA_DEBUG = 200.0
+
 # Emitido ao morrer; a Onda usa para saber quando re-spawnar.
 signal morreu
 
@@ -49,6 +52,10 @@ var indice:int = 0
 
 # Pixels por segundo. Maior que a velocidade da onda, para conseguir alcançá-la.
 @export var velocidade:float = 450.0
+
+# Desenho de debug (visão e alvo), ligado e desligado pela tecla 'V'.
+var mostraDebug = false
+var debug:Node2D = null
 
 # Ajusta a hit box e a visão ao tamanho da textura do Sprite2D
 func ajustaColisoes() -> void :
@@ -171,12 +178,47 @@ func _draw() -> void :
 
 
 func _ready() -> void:
+	# Nó à parte para o desenho de debug, para ficar por cima dos sprites.
+	debug = Node2D.new()
+	debug.z_index = 2
+	debug.draw.connect(desenhaDebug)
+	add_child(debug)
 	ajustaColisoes()
 	hp_atual = hp
 
 
-# Sem alvo, anda até o seu lugar na formação da onda; com alvo, fica parado atirando.
+# A tecla 'V' liga e desliga o desenho de debug.
+func _unhandled_key_input(event: InputEvent) -> void :
+	if event.is_pressed() and not event.is_echo() and (event as InputEventKey).keycode == KEY_V :
+		mostraDebug = not mostraDebug
+		debug.queue_redraw()
+
+# Desenho de debug: o campo de visão, na cor da equipe, e uma seta vermelha até
+# a borda do alvo atual.
+func desenhaDebug() -> void :
+	if not mostraDebug :
+		return
+	var raioVisao = $Visao/CollisionShape2D.shape.radius
+	debug.draw_arc(Vector2.ZERO, raioVisao, 0, TAU, 64, CORES_TIRO.get(equipe, Color.WHITE), LARGURA_DEBUG)
+	if alvo == null :
+		return
+	var direcao = to_local(alvo.global_position).normalized()
+	var ponta = to_local(alvo.global_position) - direcao * alvo.get_node("HitBox/CollisionShape2D").shape.radius
+	debug.draw_line(Vector2.ZERO, ponta, Color.RED, LARGURA_DEBUG)
+	debug.draw_line(ponta, ponta - direcao.rotated(PI / 6) * PONTA_SETA_DEBUG, Color.RED, LARGURA_DEBUG)
+	debug.draw_line(ponta, ponta - direcao.rotated(-PI / 6) * PONTA_SETA_DEBUG, Color.RED, LARGURA_DEBUG)
+
+
+# Com alvo, fica parado atirando. Sem alvo, vai ajudar o colega de onda que
+# estiver em combate, até o alvo dele entrar na sua visão; se ninguém estiver,
+# anda até o seu lugar na formação da onda.
 func _process(delta: float) -> void:
+	if mostraDebug :
+		debug.queue_redraw()
 	if onda == null or not visible or alvo != null :
 		return
-	global_position = global_position.move_toward(onda.posicaoNaFormacao(indice), velocidade * delta)
+	var destino = onda.posicaoNaFormacao(indice)
+	var alvoDeColega = onda.alvoMaisProximo(global_position)
+	if alvoDeColega != null :
+		destino = alvoDeColega.global_position
+	global_position = global_position.move_toward(destino, velocidade * delta)

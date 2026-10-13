@@ -56,6 +56,17 @@ func posicaoNaFormacao(indice:int) -> Vector2 :
 func emCombate() -> bool :
 	return minions.any(func(m): return m.visible and m.alvo != null)
 
+# Entre os alvos dos minions vivos da onda, o mais próximo de 'posicao', ou null
+# se ninguém tem alvo. Quem está sem alvo usa para ir ajudar os colegas.
+func alvoMaisProximo(posicao:Vector2) -> Minion :
+	var maisProximo:Minion = null
+	for minion in minions :
+		if not minion.visible or minion.alvo == null or not minion.alvo.visible :
+			continue
+		if maisProximo == null or posicao.distance_squared_to(minion.alvo.global_position) < posicao.distance_squared_to(maisProximo.global_position) :
+			maisProximo = minion.alvo
+	return maisProximo
+
 # Cria os minions da onda, já em formação.
 func criaMinions() -> void :
 	for i in quantidade :
